@@ -1,0 +1,71 @@
+import { useState } from 'react'
+
+const SetAverage = (props) => {
+  return (
+    <>
+        {props.sum/props.all}
+  </>
+  )
+}
+  
+const Setpositive = (props) => {
+  return (
+    <>
+        {props.good/props.all*100+'%'}
+  </>
+  )
+}
+
+const Statistics = (props) => {
+  return (
+    <>
+  <p>good {props.good}</p>
+  <p>neutral {props.neutral}</p>
+  <p>bad {props.bad}</p>
+  <p>all {props.all}</p>
+  <p>average <SetAverage sum={props.sum} all={props.all} /></p>
+  <p>positive <Setpositive good={props.good} all={props.all}/></p>
+  </>
+  )
+}
+
+const App = () => {
+  // save clicks of each button to its own state
+  const [good, setGood] = useState(0)
+  const [neutral, setNeutral] = useState(0)
+  const [bad, setBad] = useState(0)
+  const [all, setAll] = useState(0)
+  const [sum, setSum] = useState(0)
+
+  const handleGoodFeedback = () =>{
+    setGood(good+1)
+    setAll(all+1)
+    setSum(sum+1)
+  }
+  
+  const handleNeutralFeedback = () =>{
+    setNeutral(neutral+1)
+    setAll(all+1)
+    setSum(sum)
+  }
+  
+  const handleBadFeedback = () =>{
+    setBad(bad+1)
+    setAll(all+1)
+    setSum(sum-1)
+  }
+
+  return (
+    <div>
+      <h1>give feedback</h1>
+      <button onClick={handleGoodFeedback}>good</button>
+      <button onClick={handleNeutralFeedback}>neutral</button>
+      <button onClick={handleBadFeedback}>bad</button>
+
+      <h1>statistics</h1>
+      <Statistics good = {good} neutral = {neutral} bad = {bad} sum = {sum} all = {all}/>
+    </div>
+  )
+}
+
+export default App
