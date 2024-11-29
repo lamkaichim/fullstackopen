@@ -27,7 +27,7 @@ const App = () => {
 
   const GetRandom = () => 
   {
-    const randomIndex = Math.floor(Math.random() * anecdotes.length);     
+    const randomIndex = Math.floor(Math.random() * anecdotes.length)     
     setSelected(randomIndex)
   }
 
