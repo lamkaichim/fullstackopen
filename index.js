@@ -1,43 +1,25 @@
-const http = require('http')
-const express = require('express')
-const app = express()
-const cors = require('cors')
-const mongoose = require('mongoose')
+// index.js
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const blogsRouter = require('./controllers/blogs'); // 引入路由
+const config = require('./utils/config'); // 引入配置
+const logger = require('./utils/logger'); // 引入日志工具
 
-const blogSchema = new mongoose.Schema({
-  title: String,
-  author: String,
-  url: String,
-  likes: Number
-})
+const app = express();
 
-const Blog = mongoose.model('Blog', blogSchema)
+mongoose.connect(config.MONGO_URL)
+  .then(() => {
+    logger.info('Connected to MongoDB');
+  })
+  .catch((error) => {
+    logger.error('Error connecting to MongoDB:', error.message);
+  });
 
-const mongoUrl = 'mongodb+srv://lkcjimmy:QCm78jBMOZtRwwfQ@cluster0.3cbre.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
-mongoose.connect(mongoUrl)
+app.use(cors());
+app.use(express.json());
+app.use('/api/blogs', blogsRouter); // 注册路由
 
-app.use(cors())
-app.use(express.json())
-
-app.get('/api/blogs', (request, response) => {
-  Blog
-    .find({})
-    .then(blogs => {
-      response.json(blogs)
-    })
-})
-
-app.post('/api/blogs', (request, response) => {
-  const blog = new Blog(request.body)
-
-  blog
-    .save()
-    .then(result => {
-      response.status(201).json(result)
-    })
-})
-
-const PORT = 3003
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+app.listen(config.PORT, () => {
+  logger.info(`Server running on port ${config.PORT}`);
+});
