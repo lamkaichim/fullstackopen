@@ -29,7 +29,6 @@ const mostBlogs = (blogs) => {
     return null;
   }
 
-  // 使用 Lodash 按作者分组并统计博客数
   const authorCounts = _.countBy(blogs, 'author');
   const topAuthor = _.maxBy(Object.entries(authorCounts), ([, count]) => count);
 
@@ -39,9 +38,30 @@ const mostBlogs = (blogs) => {
   };
 };
 
+const mostLikes = (blogs) => {
+  if (blogs.length === 0) {
+    return null;
+  }
+
+  // 使用 Lodash 按作者分组并累加点赞数
+  const authorLikes = blogs.reduce((acc, blog) => {
+    acc[blog.author] = (acc[blog.author] || 0) + blog.likes;
+    return acc;
+  }, {});
+
+  // 找到点赞数最多的作者
+  const topAuthor = _.maxBy(Object.entries(authorLikes), ([, likes]) => likes);
+
+  return {
+    author: topAuthor[0],
+    likes: topAuthor[1],
+  };
+};
+
 module.exports = {
   dummy,
   totalLikes,
   favoriteBlog,
   mostBlogs,
+  mostLikes,
 };

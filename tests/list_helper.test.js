@@ -2,7 +2,7 @@ const { test, describe } = require('node:test');
 const assert = require('node:assert');
 const listHelper = require('../utils/list_helper');
 
-describe('most blogs', () => {
+describe('most likes', () => {
   const blogs = [
     {
       _id: '1',
@@ -33,7 +33,7 @@ describe('most blogs', () => {
       title: 'Blog 4',
       author: 'Edsger W. Dijkstra',
       url: 'http://example.com/4',
-      likes: 3,
+      likes: 10,
       __v: 0,
     },
     {
@@ -49,15 +49,15 @@ describe('most blogs', () => {
   const emptyBlogs = [];
 
   test('when list is empty, return null', () => {
-    const result = listHelper.mostBlogs(emptyBlogs);
+    const result = listHelper.mostLikes(emptyBlogs);
     assert.strictEqual(result, null); // 空列表应返回 null
   });
 
-  test('when list has blogs, return the author with most blogs', () => {
-    const result = listHelper.mostBlogs(blogs);
+  test('when list has blogs, return the author with most likes', () => {
+    const result = listHelper.mostLikes(blogs);
     const expected = {
-      author: 'Robert C. Martin',
-      blogs: 3,
+      author: 'Edsger W. Dijkstra',
+      likes: 17,
     };
 
     assert.deepStrictEqual(result, expected); // 比较返回的对象值是否一致
