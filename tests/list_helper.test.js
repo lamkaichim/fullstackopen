@@ -2,30 +2,46 @@ const { test, describe } = require('node:test');
 const assert = require('node:assert');
 const listHelper = require('../utils/list_helper');
 
-describe('favorite blog', () => {
+describe('most blogs', () => {
   const blogs = [
     {
       _id: '1',
       title: 'Blog 1',
-      author: 'Author 1',
+      author: 'Robert C. Martin',
       url: 'http://example.com/1',
-      likes: 7,
+      likes: 5,
       __v: 0,
     },
     {
       _id: '2',
       title: 'Blog 2',
-      author: 'Author 2',
+      author: 'Edsger W. Dijkstra',
       url: 'http://example.com/2',
-      likes: 10,
+      likes: 7,
       __v: 0,
     },
     {
       _id: '3',
       title: 'Blog 3',
-      author: 'Author 3',
+      author: 'Robert C. Martin',
       url: 'http://example.com/3',
-      likes: 5,
+      likes: 2,
+      __v: 0,
+    },
+    {
+      _id: '4',
+      title: 'Blog 4',
+      author: 'Edsger W. Dijkstra',
+      url: 'http://example.com/4',
+      likes: 3,
+      __v: 0,
+    },
+    {
+      _id: '5',
+      title: 'Blog 5',
+      author: 'Robert C. Martin',
+      url: 'http://example.com/5',
+      likes: 1,
       __v: 0,
     },
   ];
@@ -33,18 +49,17 @@ describe('favorite blog', () => {
   const emptyBlogs = [];
 
   test('when list is empty, return null', () => {
-    const result = listHelper.favoriteBlog(emptyBlogs);
-    assert.strictEqual(result, null); // 空列表应该返回 null
+    const result = listHelper.mostBlogs(emptyBlogs);
+    assert.strictEqual(result, null); // 空列表应返回 null
   });
 
-  test('when list has blogs, return the one with most likes', () => {
-    const result = listHelper.favoriteBlog(blogs);
+  test('when list has blogs, return the author with most blogs', () => {
+    const result = listHelper.mostBlogs(blogs);
     const expected = {
-      title: 'Blog 2',
-      author: 'Author 2',
-      likes: 10,
+      author: 'Robert C. Martin',
+      blogs: 3,
     };
 
-    assert.deepStrictEqual(result, expected); // 比较对象值是否一致
+    assert.deepStrictEqual(result, expected); // 比较返回的对象值是否一致
   });
 });
