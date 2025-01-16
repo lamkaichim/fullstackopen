@@ -1,21 +1,36 @@
-// controllers/blogs.js
 const express = require('express');
-const Blog = require('../models/blog'); // 引入 Blog 模型
+const Blog = require('../models/blog');
 
 const blogsRouter = express.Router();
 
-blogsRouter.get('/', (request, response) => {
-  Blog.find({}).then(blogs => {
-    response.json(blogs);
-  });
+blogsRouter.get('/', async (req, res) => {
+    try {
+        const blogs = await Blog.find({});
+        res.json(blogs);
+    } catch (error) {
+        res.status(500).send({ error: 'Something went wrong' });
+    }
 });
 
-blogsRouter.post('/', (request, response) => {
-  const blog = new Blog(request.body);
+blogsRouter.post('/', async (req,res)=>{
+    try{
+        const body=req.body
+        if(!body.title || !body.url){
+            return res.status(400).json({error : 'Title and URL are required'})
+        }
 
-  blog.save().then(result => {
-    response.status(201).json(result);
-  });
-});
+        const blog = new Blog({
+            title: body.title,
+            author: body.author,
+            url: body.url,
+            likes: body.likes || 0,
+        })
+
+        const savedBlog = await blog.save()
+        res.status(201).json(savedBlog)
+    } catch (error){
+        res.status(500).json({error: 'something went wrong whiile saving the blog'})
+    }
+})
 
 module.exports = blogsRouter;
