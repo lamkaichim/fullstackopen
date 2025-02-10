@@ -1,83 +1,106 @@
-const express = require('express');
-const Blog = require('../models/blog');
-const mongoose = require('mongoose');
+const express = require('express')
+const Blog = require('../models/blog')
+const User = require('../models/user') 
+const jwt = require('jsonwebtoken')  
 
+const blogsRouter = express.Router()
 
-const blogsRouter = express.Router();
+// 🟢 获取 Token 的方法
+const getTokenFrom = (req) => {
+    const auth = req.get('Authorization')
+    if (auth && auth.startsWith('Bearer ')) {
+        return auth.substring(7) // 直接去掉 "Bearer "
+    }
+    return null
+}
 
+// 🟢 获取所有博客
 blogsRouter.get('/', async (req, res) => {
     try {
-        const blogs = await Blog.find({});
-        res.json(blogs);
+        const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
+        res.json(blogs)
     } catch (error) {
-        res.status(500).send({ error: 'Something went wrong' });
-    }
-});
-
-blogsRouter.post('/', async (req,res)=>{
-    try{
-        const body=req.body
-        if(!body.title || !body.url){
-            return res.status(400).json({error : 'Title and URL are required'})
-        }
-
-        const blog = new Blog({
-            title: body.title,
-            author: body.author,
-            url: body.url,
-            likes: body.likes || 0,
-        })
-
-        const savedBlog = await blog.save()
-        res.status(201).json(savedBlog)
-    } catch (error){
-        res.status(500).json({error: 'something went wrong whiile saving the blog'})
+        console.error('Error fetching blogs:', error.message)
+        res.status(500).json({ error: '无法获取博客' })
     }
 })
 
+blogsRouter.post('/', async (req, res) => {
+    const { title, author, url, likes } = req.body
+    const user = req.user // 🟢 直接从 `request.user` 获取用户
 
-// 路由中打印调试信息
-blogsRouter.delete('/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        console.log(`Attempting to delete blog with ID: ${id}`);
-
-        const deletedBlog = await Blog.findByIdAndDelete(id);
-        if (!deletedBlog) {
-            console.log('Blog not found');
-            return res.status(404).json({ error: 'Blog not found' });
-        }
-
-        console.log('Blog deleted successfully');
-        res.status(204).end();
-    } catch (error) {
-        console.error('Error deleting blog:', error.message);
-        res.status(400).json({ error: 'Invalid blog ID' });
+    // 🟢 用户必须存在
+    if (!user) {
+        return res.status(401).json({ error: '未认证的用户' })
     }
-});
 
-blogsRouter.put('/:id', async (req,res) => {
-    try{
-        const {id}= req.params
-        const {likes} = req.body
-        if(!mongoose.Types.ObjectId.isValid(id)){
-            return res.status(400).json({error: 'Invalid blog ID format'})
-        }
-        const updateBlog = await Blog.findByIdAndUpdate(
-            id,
-            {likes},
-            {new:true, runValidators:true}
+    // 创建新博客
+    const blog = new Blog({
+        title,
+        author,
+        url,
+        likes: likes || 0,
+        user: user._id // 🟢 直接使用 `user._id`
+    })
+
+    const savedBlog = await blog.save()
+
+    // 关联博客到用户
+    user.blogs = user.blogs.concat(savedBlog._id)
+    await user.save()
+
+    res.status(201).json(savedBlog)
+})
+
+
+blogsRouter.delete('/:id', async (req, res) => {
+    const user = req.user // 🟢 直接从 `request.user` 获取用户
+    if (!user) {
+        return res.status(401).json({ error: '未认证的用户' })
+    }
+
+    // 查找要删除的博客
+    const blog = await Blog.findById(req.params.id)
+    if (!blog) {
+        return res.status(404).json({ error: '博客未找到' })
+    }
+
+    // 🟢 仅博客创建者可删除
+    if (blog.user.toString() !== user._id.toString()) {
+        return res.status(403).json({ error: '无权限删除此博客' }) // 403 Forbidden
+    }
+
+    await Blog.findByIdAndDelete(req.params.id)
+    res.status(204).end()
+})
+
+
+
+// 🟢 更新博客（仅允许修改点赞数）
+blogsRouter.put('/:id', async (req, res) => {
+    const { likes } = req.body
+
+    if (!likes || typeof likes !== 'number') {
+        return res.status(400).json({ error: '点赞数必须是一个数字' })
+    }
+
+    try {
+        const updatedBlog = await Blog.findByIdAndUpdate(
+            req.params.id,
+            { likes },
+            { new: true, runValidators: true }
         )
 
-        if(!updateBlog){
-            return res.status(404).json({error:'Blog not found'}
-            )
+        if (!updatedBlog) {
+            return res.status(404).json({ error: '博客未找到' })
         }
-        res.json(updateBlog)
-    }catch (error){
+
+        res.json(updatedBlog)
+    } catch (error) {
         console.error('Error updating blog:', error.message)
-        res.status(400).json({error: 'An error occurred while updating the blog'})
+        res.status(400).json({ error: '更新博客时出错' })
     }
 })
 
-module.exports = blogsRouter;
+module.exports = blogsRouter
+        

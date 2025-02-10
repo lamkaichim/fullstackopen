@@ -1,19 +1,22 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const blogSchema = new mongoose.Schema({
-    title: String,
-    author: String,
-    url: String,
-    likes: Number,
-});
+  title: { type: String, required: true },
+  author: { type: String, required: true },
+  url: { type: String, required: true },
+  likes: { type: Number, default: 0 },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User' // 关联到 User 模型
+  }
+})
 
-// 重写 toJSON 方法
 blogSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString(); // 将 _id 转换为 id
-        delete returnedObject._id; // 删除 _id
-        delete returnedObject.__v; // 删除 __v
-    },
-});
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+})
 
-module.exports = mongoose.model('Blog', blogSchema);
+module.exports = mongoose.model('Blog', blogSchema)
